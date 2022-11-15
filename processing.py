@@ -10,27 +10,34 @@ parser = argparse.ArgumentParser(
     description="Enter the file name of the data with file format"
 )
 parser.add_argument(
-    "--data",
+    "-d",
     metavar="file_name",
     help="file name of the date to process with file format",
 )
 parser.add_argument(
     "--copy",
-    metavar="copy",
+    metavar="bool_copy_data",
     default=True,
     action=argparse.BooleanOptionalAction,
     help="whether or not to copy the data file to the directory where the figures is saved",
 )
 parser.add_argument(
     "--save",
-    metavar="save_figures",
+    metavar="bool_save_figures",
     default=True,
     action=argparse.BooleanOptionalAction,
     help="whether or not to save the figures",
 )
+parser.add_argument(
+    "--latex",
+    metavar="latex",
+    default=False,
+    action=argparse.BooleanOptionalAction,
+    help="whether or not to use latex font in the figure label and title",
+)
 args = parser.parse_args()
 
-df = pd.read_csv(args.data, header=0, index_col=0)
+df = pd.read_csv(args.d, header=0, index_col=0)
 
 time_mus = df["timestamp_sample"].to_numpy()
 time = (time_mus - time_mus[0]) / 1e6
@@ -45,17 +52,18 @@ ay = df["ay"].to_numpy()
 az = df["az"].to_numpy()
 
 
-Path("results", args.data).mkdir(parents=True, exist_ok=True)
-path_saved = Path("results", args.data)
+Path("results", args.d).mkdir(parents=True, exist_ok=True)
+path_saved = Path("results", args.d)
 if args.copy:
-    shutil.copy2("./" + args.data, path_saved)
+    shutil.copy2("./" + args.d, path_saved)
 
-tex_fonts = {
-    "text.usetex": True,
-    "font.family": "Times New Roman",
-    "axes.grid": True,
-}
-plt.rcParams.update(tex_fonts)
+if args.latex:
+    tex_fonts = {
+        "text.usetex": True,
+        "font.family": "Times New Roman",
+        "axes.grid": True,
+    }
+    plt.rcParams.update(tex_fonts)
 true_style = "solid"
 ref_style = "dashed"
 cmd_style = "dotted"
