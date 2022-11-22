@@ -1,4 +1,6 @@
 *.csv
+*.zip
+*.ulg
 
 graph/
 results/
