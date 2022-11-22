@@ -35,30 +35,56 @@ parser.add_argument(
     action=argparse.BooleanOptionalAction,
     help="whether or not to use latex font in the figure label and title",
 )
+parser.add_argument(
+    "--here",
+    metavar="bool_path_figures",
+    default=True,
+    action=argparse.BooleanOptionalAction,
+    help="where to save figure: Here (directory where processing.py code is in) if True or directory where the data is in",
+)
 args = parser.parse_args()
+
 
 df = pd.read_csv(args.d, header=0, index_col=0)
 
-time_mus = df["timestamp_sample"].to_numpy() # Time since system start (microseconds)
-time = (time_mus - time_mus[0]) / 1e6 # Time since data is logged (seconds) 
-x = df["x"].to_numpy() # North position in NED earth-fixed frame (meter)
-y = df["y"].to_numpy() # East position in NED earth-fixed frame (meter)
-z = df["z"].to_numpy() # Down position in NED earth-fixed frame (meter)
-vx = df["vx"].to_numpy() # North position in NED earth-fixed frame (meter/sec)
-vy = df["vy"].to_numpy() # East position in NED earth-fixed frame (meter/sec)
-vz = df["vz"].to_numpy() # Down position in NED earth-fixed frame (meter/sec)
-ax = df["ax"].to_numpy() # North position in NED earth-fixed frame (meter/sec^2)
-ay = df["ay"].to_numpy() # East position in NED earth-fixed frame (meter/sec^2)
-az = df["az"].to_numpy() # Down position in NED earth-fixed frame (meter/sec^2)
-heading = df["heading"].to_numpy() # Euler yaw angle transforming the tarngent plane relative to NED earth-fixed frame, [-PI ~ PI] (radians)
-std_pos_horizontal = df['eph'].to_numpy() # Standard devitation of horizontal position error (meter)
-std_pos_vertical = df['epv'].to_numpy() # Standard devitation of vertical position error (meter)
-std_vel_horizontal = df['evh'].to_numpy() # Standard devitation of horizontal velocity error (meter/sec)
-std_vel_vertical = df['evv'].to_numpy() # Standard devitation of horizontal velocity error (meter/sec)
+time_mus = df["timestamp_sample"].to_numpy()  # Time since system start (microseconds)
+time = (time_mus - time_mus[0]) / 1e6  # Time since data is logged (seconds)
+x = df["x"].to_numpy()  # North position in NED earth-fixed frame (meter)
+y = df["y"].to_numpy()  # East position in NED earth-fixed frame (meter)
+z = df["z"].to_numpy()  # Down position in NED earth-fixed frame (meter)
+vx = df["vx"].to_numpy()  # North position in NED earth-fixed frame (meter/sec)
+vy = df["vy"].to_numpy()  # East position in NED earth-fixed frame (meter/sec)
+vz = df["vz"].to_numpy()  # Down position in NED earth-fixed frame (meter/sec)
+ax = df["ax"].to_numpy()  # North position in NED earth-fixed frame (meter/sec^2)
+ay = df["ay"].to_numpy()  # East position in NED earth-fixed frame (meter/sec^2)
+az = df["az"].to_numpy()  # Down position in NED earth-fixed frame (meter/sec^2)
+heading = df[
+    "heading"
+].to_numpy()  # Euler yaw angle transforming the tarngent plane relative to NED earth-fixed frame, [-PI ~ PI] (radians)
+std_pos_horizontal = df[
+    "eph"
+].to_numpy()  # Standard devitation of horizontal position error (meter)
+std_pos_vertical = df[
+    "epv"
+].to_numpy()  # Standard devitation of vertical position error (meter)
+std_vel_horizontal = df[
+    "evh"
+].to_numpy()  # Standard devitation of horizontal velocity error (meter/sec)
+std_vel_vertical = df[
+    "evv"
+].to_numpy()  # Standard devitation of horizontal velocity error (meter/sec)
 
 
-Path("results", args.d).mkdir(parents=True, exist_ok=True)
-path_saved = Path("results", args.d)
+path_split = args.d.split("/")
+file_name = path_split[-1].split(".")[0]
+if args.here:
+    Path("results", file_name).mkdir(parents=True, exist_ok=True)
+    path_saved = Path("results", file_name)
+else:
+    tmp2 = "".join(args.d.split("/")[:-1])
+    Path(tmp2, "results", file_name).mkdir(parents=True, exist_ok=True)
+    path_saved = Path(tmp2, "results", file_name)
+
 if args.copy:
     shutil.copy2("./" + args.d, path_saved)
 
@@ -142,9 +168,11 @@ plt.close("all")
 
 # Heading angle
 fig, ax = plt.subplots(1, 1)
-ax.plot(time, heading * 180 / np.pi, color=true_color, linestyle=true_style, label='true')
-ax.set_ylabel('Heading angle (deg)')
-ax.set_xlabel('Time (s)')
+ax.plot(
+    time, heading * 180 / np.pi, color=true_color, linestyle=true_style, label="true"
+)
+ax.set_ylabel("Heading angle (deg)")
+ax.set_xlabel("Time (s)")
 fig.tight_layout()
 if args.save:
     fig.savefig(Path(path_saved, "heading.png"), bbox_inches="tight")
@@ -152,10 +180,14 @@ plt.close("all")
 
 # Standard deivation
 fig, ax = plt.subplots(2, 2)
-ax[0][0].plot(time, std_pos_horizontal, color=true_color, linestyle=true_style, label="true")
+ax[0][0].plot(
+    time, std_pos_horizontal, color=true_color, linestyle=true_style, label="true"
+)
 ax[0][0].set_ylabel("std pos horizontal (m)")
 ax[0][0].axes.xaxis.set_ticklabels([])
-ax[0][1].plot(time, std_pos_vertical, color=true_color, linestyle=true_style, label="true")
+ax[0][1].plot(
+    time, std_pos_vertical, color=true_color, linestyle=true_style, label="true"
+)
 ax[0][1].set_ylabel("std pos vertical (m)")
 ax[0][1].axes.xaxis.set_ticklabels([])
 
